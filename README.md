@@ -160,6 +160,62 @@ vrrp_instance string {
 - Proxy server xác định những yêu cầu từ phía client và quyết định đáp ứng hay không đáp ứng, nếu yêu cầu được đáp ứng, proxy server sẽ kết nối tới server thật thay cho client và tiếp tục chuyển tiếp đến những yêu cầu từ client đến server, cũng như đáp ứng những yêu cầu của server đến client. 
 
 
+### Configure
+
+- Load Balance
+
+```sh
+http   {
+
+upstream server_group   {
+
+server my.server1.com weight=3;
+
+server my.server2.com;
+
+}
+
+server  {
+
+location / {
+
+proxy_pass http://server_group;
+
+}
+
+}
+
+}
+```
+
+- Reverse Proxy
+
+```sh
+upstream server_group   {
+server 10.5.9.161;
+server 10.5.10.176;
+}
+
+...
+
+location / {
+        proxy_send_timeout   90;
+        proxy_read_timeout   90;
+        proxy_connect_timeout 30s;
+ 
+        proxy_redirect  http://server_group  http://server_group;
+        proxy_pass   http://server_group;
+ 
+        proxy_set_header   Host   $host;
+        proxy_set_header   X-Real-IP  $remote_addr;
+        proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+ ```
+ proxy_send_timeout: Thời gian chờ để request đến được proxy server
+ proxy_read_timeout: Thời gian chờ để đọc reponse từ proxy server
+ proxy_connect_timeout: Thời gian chờ để thiết lập kết nối với proxy server
+ proxy_set_header: Sửa đổi hoặc thêm các trường vào header của request được chuyển đến proxy server.
+ 
 # 3. Mô hình triên khai
 
 
@@ -209,6 +265,14 @@ vrrp_instance string {
   root@quynv-keepalive2:~# vim /etc/nginx/sites-available/default 
 
 ...
+upstream server_group   {
+
+server 10.5.9.161;
+
+server 10.5.10.176;
+
+}
+
 server {
         listen 80 default_server;
         listen [::]:80 default_server;
